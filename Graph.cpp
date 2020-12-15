@@ -75,24 +75,24 @@ Graph::Graph(bool _type, int _n, int _density)
 // BFS
 void Graph::parseGraph()
 {
-    int v, u, i;
+    int v, u, i, j;
     int counter;
     std::queue<int> queue;
-    std::vector<bool> visited(n, 0);
+    std::vector<std::vector<bool>> visited(n, std::vector<bool>(n, 0));
     counter = 0;
     queue.push(0);
     while (!queue.empty())
     {
         v = queue.front();
-        visited[v] = true;
+        visited[0][v] = true;
         queue.pop();
         ++counter;
         for (u = 0; u < n; ++u)
         {
-            if (!visited[u] && ((type == UDG && graph[v][u]) || (type == DG && (graph[v][u] || graph[u][v]))))
+            if (!visited[0][u] && ((type == UDG && graph[v][u]) || (type == DG && (graph[v][u] || graph[u][v]))))
             {
                 queue.push(u);
-                visited[u] = true;
+                visited[0][u] = true;
             }
         }
     }
@@ -106,30 +106,41 @@ void Graph::parseGraph()
     if (type == DG)
     {
         is_strongly_connected = true;
+        is_unilateral_connected = true;
+        visited[0].assign(n, 0);
         for (i = 0; i < n; ++i)
         {
-            visited.assign(n, 0);
             counter = 0;
             queue.push(i);
             while (!queue.empty())
             {
                 v = queue.front();
                 queue.pop();
-                visited[v] = true;
+                visited[i][v] = true;
                 ++counter;
                 for (u = 0; u < n; ++u)
                 {
-                    if (!visited[u] && graph[v][u])
+                    if (!visited[i][u] && graph[v][u])
                     {
                         queue.push(u);
-                        visited[u] = true;
+                        visited[i][u] = true;
                     }
                 }
             }
             if (counter != n)
                 is_strongly_connected = false;
-            else
-                is_unilateral_connected = true;
+        }
+        if (!is_strongly_connected)
+        {
+            for (i = 0; i < n; ++i)
+            {
+                for (j = 0; j < n; ++j)
+                    if (!(visited[i][j] || visited[j][i]))
+                    {
+                        is_unilateral_connected = false;
+                        break;
+                    }
+            }
         }
     }
 }
